@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Goldmine</title>
+  <meta name="description"
+    content="Goldmine — A premium mining-themed casino game. Dig for precious metals, avoid the mines, cash out before it's too late.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+   GOLDMINE — STYLES (Cave / Stone Aesthetic)
+   ═══════════════════════════════════════════════════════════ */
+
+    /* ── Reset & Base ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      /* Cave palette — warm, earthy */
+      --bg-deep: #0a0908;
+      --bg-cave: #111010;
+      --bg-surface: #1a1714;
+      --bg-card: #1e1b17;
+      --border-stone: #2e2a24;
+      --border-stone-light: #3e3830;
+
+      /* Stone tile colors */
+      --stone-light: #5a5248;
+      --stone-mid: #4a443c;
+      --stone-dark: #3a3530;
+      --stone-shadow: #252220;
+
+      /* Metals */
+      --copper: #d4843a;
+      --copper-glow: rgba(212, 132, 58, 0.6);
+      --silver: #c8c8c8;
+      --silver-glow: rgba(200, 200, 200, 0.5);
+      --gold: #ffd700;
+      --gold-glow: rgba(255, 215, 0, 0.6);
+      --platinum: #eeeae6;
+      --platinum-glow: rgba(238, 234, 230, 0.6);
+
+      /* Amber cave light */
+      --amber: #e8a020;
+      --amber-glow: rgba(232, 160, 32, 0.4);
+      --amber-dim: rgba(200, 140, 40, 0.15);
+
+      --bomb-red: #ff4040;
+      --bomb-glow: rgba(255, 64, 64, 0.6);
+
+
+
+      --text-primary: #e8e0d8;
+      --text-secondary: #998f80;
+      --text-dim: #665c50;
+      --accent-green: #3bc76e;
+      --accent-green-dark: #1d7a3d;
+
+      --radius: 6px;
+      --radius-sm: 4px;
+      --transition: 0.2s ease;
+    }
+
+    html {
+      background: var(--bg-deep);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-deep);
+      /* Subtle radial cave vignette */
+      background-image: radial-gradient(ellipse at 50% 30%, #1a1510 0%, #0a0908 70%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px 16px;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ── */
+    #game-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+    }
+
+    /* ── Ambient Particles Canvas ── */
+    #particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    /* ── Header ── */
+    .header {
+      width: 100%;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #ffe880 0%, #ffd700 30%, #cd7f32 80%, #8b5a1e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 2px 12px rgba(255, 200, 50, 0.4)) drop-shadow(0 0 40px rgba(255, 180, 30, 0.15));
+      margin-bottom: 4px;
+    }
+
+    .balance-row {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .balance-row span {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    /* ── Multiplier Display ── */
+    .multiplier-display {
+      background: linear-gradient(180deg, #1e1b17 0%, #151210 100%);
+      border: 2px solid var(--border-stone);
+      border-radius: 8px;
+      padding: 8px 32px 10px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      transition: border-color 0.4s, box-shadow 0.4s;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .multiplier-display.tier-copper {
+      border-color: var(--copper);
+      box-shadow: 0 0 24px var(--copper-glow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .multiplier-display.tier-silver {
+      border-color: var(--silver);
+      box-shadow: 0 0 24px var(--silver-glow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .multiplier-display.tier-gold {
+      border-color: var(--gold);
+      box-shadow: 0 0 30px var(--gold-glow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .multiplier-display.tier-platinum {
+      border-color: var(--platinum);
+      box-shadow: 0 0 36px var(--platinum-glow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .multiplier-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+    }
+
+    .multiplier-value {
+      font-size: 38px;
+      font-weight: 900;
+      color: var(--amber);
+      transition: color 0.4s;
+      line-height: 1.1;
+    }
+
+    .multiplier-display.tier-copper .multiplier-value {
+      color: var(--copper);
+    }
+
+    .multiplier-display.tier-silver .multiplier-value {
+      color: var(--silver);
+    }
+
+    .multiplier-display.tier-gold .multiplier-value {
+      color: var(--gold);
+    }
+
+    .multiplier-display.tier-platinum .multiplier-value {
+      color: var(--platinum);
+    }
+
+    .potential-win {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .potential-win span {
+      color: var(--accent-green);
+      font-weight: 700;
+    }
+
+    /* ── Grid ── */
+    .grid-wrapper {
+      background: #0e0c0a;
+      border: 2px solid #2a2520;
+      border-radius: 10px;
+      padding: 6px;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 40px rgba(200, 150, 50, 0.04);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      width: 100%;
+    }
+
+    /* ── Tiles — Stone Texture Image ── */
+    .tile {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      border: 1px solid rgba(80, 72, 60, 0.5);
+      cursor: pointer;
+      position: relative;
+      transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      background: url('assets/stone_tile.png') center/cover no-repeat;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Subtle highlight overlay for depth */
+    .tile::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.04) 0%, transparent 40%, rgba(0, 0, 0, 0.15) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .tile::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .tile:not(.revealed):not(.disabled):hover {
+      transform: translateY(-1px);
+      border-color: rgba(120, 108, 88, 0.7);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        0 0 16px rgba(200, 150, 50, 0.12);
+    }
+
+    .tile:not(.revealed):not(.disabled):active {
+      transform: translateY(0) scale(0.97);
+    }
+
+    .tile.disabled {
+      cursor: default;
+      opacity: 0.65;
+    }
+
+    /* ── Tile Ore Content — Full tile image ── */
+    .tile .ore {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0;
+      transform: scale(0.7);
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 2;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .tile.revealed .ore {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ── Revealed tile base ── */
+    .tile.revealed {
+      background: #0e0c0a;
+      border-color: #2a2420;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .tile.revealed::before {
+      background: none;
+    }
+
+    .tile.revealed::after {
+      background: none;
+    }
+
+    /* ── Revealed Tile Glow ── */
+    .tile.revealed.safe {
+      border-color: rgba(255, 215, 0, 0.45);
+      box-shadow: 0 0 16px var(--gold-glow), 0 0 3px rgba(255, 215, 0, 0.3);
+    }
+
+    /* ── Bomb Tile ── */
+    .tile.revealed.bomb {
+      border-color: rgba(255, 64, 64, 0.7);
+      box-shadow: 0 0 22px var(--bomb-glow), 0 0 4px rgba(255, 64, 64, 0.5);
+      animation: bombShake 0.5s ease;
+    }
+
+    .tile.mine-reveal {
+      background: #0e0c0a;
+      border-color: rgba(255, 64, 64, 0.3);
+    }
+
+    .tile.mine-reveal .ore {
+      opacity: 0.45;
+    }
+
+    /* ── Jackpot Vein Tile ── */
+    .tile.revealed.jackpot {
+      border-color: rgba(180, 220, 255, 0.8);
+      box-shadow:
+        0 0 24px rgba(180, 220, 255, 0.6),
+        0 0 48px rgba(255, 215, 0, 0.3),
+        inset 0 0 12px rgba(180, 220, 255, 0.2);
+      animation: jackpotPulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes jackpotPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 24px rgba(180, 220, 255, 0.6), 0 0 48px rgba(255, 215, 0, 0.3);
+      }
+
+      50% {
+        box-shadow: 0 0 36px rgba(180, 220, 255, 0.9), 0 0 64px rgba(255, 215, 0, 0.5);
+      }
+    }
+
+    /* ── Gamble Modal ── */
+    .gamble-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+
+    .gamble-overlay.show {
+      display: flex;
+    }
+
+    .gamble-modal {
+      background: linear-gradient(145deg, rgba(30, 27, 23, 0.95), rgba(15, 13, 10, 0.98));
+      border: 1px solid rgba(180, 220, 255, 0.3);
+      border-radius: 16px;
+      padding: 32px 28px;
+      max-width: 380px;
+      width: 90%;
+      text-align: center;
+      box-shadow:
+        0 0 40px rgba(180, 220, 255, 0.15),
+        0 0 80px rgba(255, 215, 0, 0.08);
+      animation: modalAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes modalAppear {
+      from {
+        opacity: 0;
+        transform: scale(0.7) translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .gamble-title {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(180, 220, 255, 0.9);
+      margin-bottom: 4px;
+    }
+
+    .gamble-icon {
+      font-size: 40px;
+      margin: 8px 0;
+      animation: jackpotPulse 1.2s ease-in-out infinite;
+      text-shadow: 0 0 20px rgba(180, 220, 255, 0.6);
+    }
+
+    .gamble-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .gamble-stakes {
+      background: rgba(255, 215, 0, 0.08);
+      border: 1px solid rgba(255, 215, 0, 0.15);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 22px;
+    }
+
+    .gamble-stakes-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .gamble-stakes-value {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--gold);
+    }
+
+    .gamble-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .gamble-btn {
+      flex: 1;
+      padding: 14px 8px;
+      border-radius: 10px;
+      border: 1px solid;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .gamble-btn.risk {
+      background: linear-gradient(135deg, rgba(180, 220, 255, 0.15), rgba(100, 150, 255, 0.08));
+      border-color: rgba(180, 220, 255, 0.4);
+      color: rgba(180, 220, 255, 0.95);
+    }
+
+    .gamble-btn.risk:hover {
+      background: linear-gradient(135deg, rgba(180, 220, 255, 0.25), rgba(100, 150, 255, 0.15));
+      box-shadow: 0 0 20px rgba(180, 220, 255, 0.3);
+      transform: scale(1.03);
+    }
+
+    .gamble-btn.keep {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: var(--text-secondary);
+    }
+
+    .gamble-btn.keep:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: scale(1.03);
+    }
+
+    .gamble-btn-label {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 2px;
+    }
+
+    .gamble-btn-sub {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      opacity: 0.6;
+    }
+
+    .gamble-result {
+      display: none;
+      padding: 18px 0 0;
+    }
+
+    .gamble-result.show {
+      display: block;
+      animation: modalAppear 0.3s ease;
+    }
+
+    .gamble-result-text {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .gamble-result-text.win {
+      color: var(--gold);
+      text-shadow: 0 0 20px var(--gold-glow);
+    }
+
+    .gamble-result-text.lose {
+      color: var(--text-secondary);
+      text-shadow: 0 0 10px rgba(150, 140, 120, 0.3);
+    }
+
+    .gamble-result-detail {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .control-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .control-group {
+      flex: 1;
+      background: linear-gradient(180deg, #1a1714 0%, #141210 100%);
+      border: 1px solid #2a2520;
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .control-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+    }
+
+    .control-input-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .control-input-row input {
+      flex: 1;
+      background: #0e0c0a;
+      border: 1px solid #2a2520;
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 6px 8px;
+      text-align: center;
+      outline: none;
+      width: 0;
+      transition: border-color var(--transition);
+    }
+
+    .control-input-row input:focus {
+      border-color: #3e3830;
+    }
+
+    .ctrl-btn {
+      background: #1a1714;
+      border: 1px solid #2a2520;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .ctrl-btn:hover {
+      background: #252018;
+      color: var(--text-primary);
+      border-color: #3e3830;
+    }
+
+    .ctrl-btn:active {
+      transform: scale(0.96);
+    }
+
+    .ctrl-btn:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    /* Main action button */
+    .action-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: var(--radius);
+      border: none;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .action-btn.bet-btn {
+      background: linear-gradient(180deg, #3bc76e 0%, #1d7a3d 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(50, 180, 90, 0.3);
+    }
+
+    .action-btn.bet-btn:hover {
+      box-shadow: 0 4px 24px rgba(50, 180, 90, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .action-btn.bet-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .action-btn.cashout-btn {
+      background: linear-gradient(180deg, #ffd700 0%, #b89500 100%);
+      color: #1a1400;
+      box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3);
+    }
+
+    .action-btn.cashout-btn:hover {
+      box-shadow: 0 4px 24px rgba(255, 215, 0, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .action-btn.cashout-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .action-btn.newgame-btn {
+      background: linear-gradient(180deg, #3a3530 0%, #252220 100%);
+      color: var(--text-primary);
+      border: 1px solid #3e3830;
+    }
+
+    .action-btn.newgame-btn:hover {
+      background: linear-gradient(180deg, #4a4540 0%, #302c28 100%);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* ── Provably Fair Panel ── */
+    .fair-toggle {
+      font-size: 11px;
+      color: var(--text-dim);
+      cursor: pointer;
+      text-align: center;
+      padding: 4px;
+      user-select: none;
+      position: relative;
+      z-index: 1;
+      transition: color var(--transition);
+    }
+
+    .fair-toggle:hover {
+      color: var(--text-secondary);
+    }
+
+    .fair-panel {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid #2a2520;
+      border-radius: var(--radius);
+      padding: 14px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+      font-size: 12px;
+    }
+
+    .fair-panel.open {
+      display: flex;
+    }
+
+    .fair-panel label {
+      color: var(--text-dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .fair-panel .seed-value {
+      background: #0e0c0a;
+      border: 1px solid #2a2520;
+      border-radius: var(--radius-sm);
+      padding: 6px 8px;
+      color: var(--text-secondary);
+      font-family: monospace;
+      font-size: 11px;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+
+    .fair-panel input {
+      background: #0e0c0a;
+      border: 1px solid #2a2520;
+      border-radius: var(--radius-sm);
+      padding: 6px 8px;
+      color: var(--text-primary);
+      font-family: monospace;
+      font-size: 12px;
+      outline: none;
+      width: 100%;
+    }
+
+    /* ── Game Over / Win Overlay ── */
+    .result-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 9, 8, 0.75);
+      border-radius: 10px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      backdrop-filter: blur(4px);
+    }
+
+    .result-overlay.show {
+      display: flex;
+    }
+
+    .result-text {
+      font-size: 28px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-shadow: 0 0 30px currentColor;
+    }
+
+    .result-text.win {
+      color: var(--gold);
+    }
+
+    .result-text.loss {
+      color: var(--bomb-red);
+    }
+
+    /* ── Animations ── */
+    @keyframes bombShake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      15% {
+        transform: translateX(-6px) rotate(-1deg);
+      }
+
+      30% {
+        transform: translateX(5px) rotate(1deg);
+      }
+
+      45% {
+        transform: translateX(-4px);
+      }
+
+      60% {
+        transform: translateX(3px);
+      }
+
+      75% {
+        transform: translateX(-2px);
+      }
+    }
+
+    @keyframes revealPop {
+      0% {
+        transform: scale(0) rotate(-20deg);
+        opacity: 0;
+      }
+
+      60% {
+        transform: scale(1.15) rotate(5deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    .tile.revealed .ore {
+      animation: revealPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes resultFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .result-overlay.show .result-text {
+      animation: resultFadeIn 0.4s ease forwards;
+    }
+
+    @keyframes multiplierPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.06);
+      }
+    }
+
+    .multiplier-bump {
+      animation: multiplierPulse 0.3s ease;
+    }
+
+    @keyframes glowPulse {
+
+      0%,
+      100% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 420px) {
+      .logo {
+        font-size: 28px;
+        letter-spacing: 4px;
+      }
+
+      .multiplier-value {
+        font-size: 28px;
+      }
+
+      .grid {
+        gap: 3px;
+      }
+
+      .control-row {
+        flex-direction: column;
+      }
+    }
+
+    @media (min-width: 500px) {
+      body {
+        padding-top: 40px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="particles"></canvas>
+
+  <div id="game-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">Goldmine</div>
+      <div class="balance-row">
+        Balance: <span id="balance">1000.00</span> &nbsp;credits
+      </div>
+    </div>
+
+    <!-- Multiplier -->
+    <div class="multiplier-display" id="multiplier-display">
+      <div class="multiplier-label">Multiplier</div>
+      <div class="multiplier-value" id="multiplier-value">1.00×</div>
+      <div class="potential-win" id="potential-win"></div>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid-wrapper">
+      <div class="grid" id="grid"></div>
+      <div class="result-overlay" id="result-overlay">
+        <div class="result-text" id="result-text"></div>
+      </div>
+    </div>
+
+    <!-- Gamble Modal -->
+    <div class="gamble-overlay" id="gamble-overlay">
+      <div class="gamble-modal">
+        <div class="gamble-title">Jackpot Vein</div>
+        <div class="gamble-icon">💎</div>
+        <div class="gamble-subtitle">Risk your winnings for a chance to double!</div>
+        <div class="gamble-stakes">
+          <div class="gamble-stakes-label">Current Multiplier</div>
+          <div class="gamble-stakes-value" id="gamble-stakes-value">—</div>
+        </div>
+        <div class="gamble-buttons" id="gamble-buttons">
+          <button class="gamble-btn risk" id="gamble-risk">
+            <span class="gamble-btn-label">⚡ Risk It</span>
+            <span class="gamble-btn-sub">2× or 0.5×</span>
+          </button>
+          <button class="gamble-btn keep" id="gamble-keep">
+            <span class="gamble-btn-label">🛡️ Keep It</span>
+            <span class="gamble-btn-sub">Stay safe</span>
+          </button>
+        </div>
+        <div class="gamble-result" id="gamble-result">
+          <div class="gamble-result-text" id="gamble-result-text"></div>
+          <div class="gamble-result-detail" id="gamble-result-detail"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls" id="controls">
+      <div class="control-row">
+        <div class="control-group">
+          <div class="control-label">Mines</div>
+          <div class="control-input-row">
+            <button class="ctrl-btn" id="mines-minus">−</button>
+            <input type="number" id="mines-input" value="3" min="1" max="24" readonly>
+            <button class="ctrl-btn" id="mines-plus">+</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">Bet Amount</div>
+          <div class="control-input-row">
+            <button class="ctrl-btn" id="bet-half">½</button>
+            <input type="number" id="bet-input" value="10.00" min="0.10" step="0.10">
+            <button class="ctrl-btn" id="bet-double">2×</button>
+          </div>
+        </div>
+      </div>
+      <button class="action-btn bet-btn" id="action-btn">Bet</button>
+    </div>
+
+    <!-- Provably Fair -->
+    <div class="fair-toggle" id="fair-toggle">🔒 Provably Fair ▾</div>
+    <div class="fair-panel" id="fair-panel">
+      <label>Server Seed Hash</label>
+      <div class="seed-value" id="seed-hash">—</div>
+      <label>Server Seed (revealed after round)</label>
+      <div class="seed-value" id="seed-revealed">Hidden until round ends</div>
+      <label>Client Seed</label>
+      <input type="text" id="client-seed" value="">
+      <label>Nonce</label>
+      <div class="seed-value" id="nonce-display">0</div>
+    </div>
+  </div>
+
+  <script>
+    /* ═══════════════════════════════════════════════════════════
+       GOLDMINE — GAME ENGINE
+       ═══════════════════════════════════════════════════════════ */
+
+    /* ── Ambient Particles ── */
+    (function initParticles() {
+      const c = document.getElementById('particles');
+      const ctx = c.getContext('2d');
+      let W, H, particles = [];
+      function resize() { W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
+      window.addEventListener('resize', resize);
+      resize();
+      for (let i = 0; i < 40; i++) {
+        particles.push({
+          x: Math.random() * W, y: Math.random() * H,
+          r: Math.random() * 1.5 + 0.5,
+          dx: (Math.random() - 0.5) * 0.3,
+          dy: -(Math.random() * 0.4 + 0.1),
+          a: Math.random() * 0.4 + 0.1
+        });
+      }
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        for (const p of particles) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 180, 60, ${p.a})`;
+          ctx.fill();
+          p.x += p.dx; p.y += p.dy;
+          if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
+          if (p.x < -10 || p.x > W + 10) p.x = Math.random() * W;
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /* ── Sound Engine (Web Audio API) ── */
+    const Sound = (() => {
+      let ctx;
+      function getCtx() {
+        if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+        return ctx;
+      }
+      function play(fn) { try { fn(getCtx()); } catch (e) { } }
+
+      return {
+        reveal(streak) {
+          play(ctx => {
+            const freq = 400 + streak * 60;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.5, ctx.currentTime + 0.08);
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + 0.2);
+          });
+        },
+        bomb() {
+          play(ctx => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.4);
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + 0.5);
+            // noise burst
+            const buf = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2);
+            const src = ctx.createBufferSource();
+            const g2 = ctx.createGain();
+            src.buffer = buf;
+            g2.gain.setValueAtTime(0.2, ctx.currentTime);
+            src.connect(g2).connect(ctx.destination);
+            src.start();
+          });
+        },
+        cashout() {
+          play(ctx => {
+            [0, 0.07, 0.14, 0.21].forEach((delay, i) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(600 + i * 200, ctx.currentTime + delay);
+              gain.gain.setValueAtTime(0.12, ctx.currentTime + delay);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.15);
+              osc.connect(gain).connect(ctx.destination);
+              osc.start(ctx.currentTime + delay);
+              osc.stop(ctx.currentTime + delay + 0.15);
+            });
+          });
+        },
+        click() {
+          play(ctx => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, ctx.currentTime);
+            gain.gain.setValueAtTime(0.06, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + 0.05);
+          });
+        },
+        jackpot() {
+          play(ctx => {
+            // Rising shimmer
+            [0, 0.06, 0.12, 0.18, 0.24].forEach((d, i) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(800 + i * 300, ctx.currentTime + d);
+              gain.gain.setValueAtTime(0.12, ctx.currentTime + d);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.2);
+              osc.connect(gain).connect(ctx.destination);
+              osc.start(ctx.currentTime + d); osc.stop(ctx.currentTime + d + 0.2);
+            });
+          });
+        },
+        gambleWin() {
+          play(ctx => {
+            [0, 0.08, 0.16, 0.24, 0.32].forEach((d, i) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(600 + i * 250, ctx.currentTime + d);
+              gain.gain.setValueAtTime(0.15, ctx.currentTime + d);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.18);
+              osc.connect(gain).connect(ctx.destination);
+              osc.start(ctx.currentTime + d); osc.stop(ctx.currentTime + d + 0.18);
+            });
+          });
+        },
+        gambleLose() {
+          play(ctx => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(500, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + 0.4);
+          });
+        }
+      };
+    })();
+
+    /* ── Provably Fair System ── */
+    const Fair = (() => {
+      function randomHex(len) {
+        const arr = new Uint8Array(len);
+        crypto.getRandomValues(arr);
+        return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      async function sha256(str) {
+        const data = new TextEncoder().encode(str);
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      async function hmacSha256(key, msg) {
+        const enc = new TextEncoder();
+        const cryptoKey = await crypto.subtle.importKey('raw', enc.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+        const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(msg));
+        return new Uint8Array(sig);
+      }
+
+      function deriveMines(bytes, mineCount) {
+        const positions = Array.from({ length: 25 }, (_, i) => i);
+        let bi = 0;
+        for (let i = 24; i > 0; i--) {
+          // Use two bytes for better distribution
+          const val = (bytes[bi % bytes.length] * 256 + bytes[(bi + 1) % bytes.length]) % (i + 1);
+          bi += 2;
+          [positions[i], positions[val]] = [positions[val], positions[i]];
+        }
+        return new Set(positions.slice(0, mineCount));
+      }
+
+      let serverSeed = '', nonce = 0;
+
+      return {
+        async newRound(clientSeed, mineCount) {
+          serverSeed = randomHex(32);
+          nonce++;
+          const hash = await sha256(serverSeed);
+          const hmac = await hmacSha256(serverSeed, `${clientSeed}:${nonce}`);
+          const mineSet = deriveMines(hmac, mineCount);
+          return { hash, mineSet, nonce };
+        },
+        getServerSeed() { return serverSeed; },
+        getNonce() { return nonce; }
+      };
+    })();
+
+    /* ── Game State ── */
+    const STATES = { IDLE: 'idle', ACTIVE: 'active', OVER: 'over', WON: 'won' };
+    const GRID_SIZE = 25;
+    const HOUSE_EDGE = 0.01;
+
+    let state = {
+      phase: STATES.IDLE,
+      balance: 1000,
+      bet: 10,
+      mineCount: 3,
+      mines: new Set(),
+      revealed: new Set(),
+      multiplier: 1,
+      clientSeed: 'goldmine_' + Math.random().toString(36).slice(2, 10)
+    };
+
+    /* ── DOM References ── */
+    const $ = id => document.getElementById(id);
+    const grid = $('grid');
+    const balanceEl = $('balance');
+    const multiplierDisplay = $('multiplier-display');
+    const multiplierValue = $('multiplier-value');
+    const potentialWin = $('potential-win');
+    const actionBtn = $('action-btn');
+    const minesInput = $('mines-input');
+    const betInput = $('bet-input');
+    const resultOverlay = $('result-overlay');
+    const resultText = $('result-text');
+    const seedHash = $('seed-hash');
+    const seedRevealed = $('seed-revealed');
+    const clientSeedInput = $('client-seed');
+    const nonceDisplay = $('nonce-display');
+    const fairToggle = $('fair-toggle');
+    const fairPanel = $('fair-panel');
+
+    /* ── Multiplier Calculation ── */
+    function calcMultiplier(safePicks, mineCount) {
+      if (safePicks === 0) return 1;
+      let prob = 1;
+      for (let i = 0; i < safePicks; i++) {
+        prob *= (GRID_SIZE - mineCount - i) / (GRID_SIZE - i);
+      }
+      return (1 - HOUSE_EDGE) / prob;
+    }
+
+    /* ── Ore Image Assets ── */
+    const ORE_IMAGES = {
+      safe: 'assets/ore_safe.png',
+      bomb: 'assets/ore_bomb.png',
+      jackpot: 'assets/ore_jackpot.png'
+    };
+
+    /* ── Jackpot Vein System ── */
+    const JACKPOT_CHANCE = 0.15;
+
+    function isJackpot(index) {
+      // Deterministic: hash the index with a simple seed-based check
+      // Use the last few chars of the server seed hash for determinism
+      const hash = parseInt(state.serverHash.slice(-8), 16);
+      const val = ((hash * (index + 1) * 2654435761) >>> 0) / 4294967296;
+      return val < JACKPOT_CHANCE;
+    }
+
+    /* ── Gamble Modal ── */
+    const gambleOverlay = $('gamble-overlay');
+    const gambleStakesValue = $('gamble-stakes-value');
+    const gambleButtons = $('gamble-buttons');
+    const gambleResult = $('gamble-result');
+    const gambleResultText = $('gamble-result-text');
+    const gambleResultDetail = $('gamble-result-detail');
+
+    function showGambleModal() {
+      gambleStakesValue.textContent = state.multiplier.toFixed(2) + '×';
+      gambleButtons.style.display = 'flex';
+      gambleResult.classList.remove('show');
+      gambleOverlay.classList.add('show');
+      Sound.jackpot();
+    }
+
+    function resolveGamble() {
+      // 50/50 outcome derived from server hash + pick count
+      const hash = parseInt(state.serverHash.slice(-12, -4), 16);
+      const val = ((hash * state.revealed.size * 2246822519) >>> 0) / 4294967296;
+      const won = val >= 0.5;
+
+      const oldMultiplier = state.multiplier;
+      state.multiplier = won ? oldMultiplier * 2 : oldMultiplier * 0.5;
+
+      gambleButtons.style.display = 'none';
+
+      if (won) {
+        Sound.gambleWin();
+        gambleResultText.className = 'gamble-result-text win';
+        gambleResultText.textContent = 'DOUBLED!';
+        gambleResultDetail.textContent = `${oldMultiplier.toFixed(2)}× → ${state.multiplier.toFixed(2)}×`;
+      } else {
+        Sound.gambleLose();
+        gambleResultText.className = 'gamble-result-text lose';
+        gambleResultText.textContent = 'HALVED';
+        gambleResultDetail.textContent = `${oldMultiplier.toFixed(2)}× → ${state.multiplier.toFixed(2)}×`;
+      }
+
+      gambleResult.classList.add('show');
+
+      // Auto-dismiss after 1.5s
+      setTimeout(() => {
+        dismissGamble();
+      }, 1500);
+    }
+
+    function dismissGamble() {
+      gambleOverlay.classList.remove('show');
+      updateUI();
+
+      // Check if all safe tiles revealed
+      if (state.revealed.size === GRID_SIZE - state.mineCount) {
+        cashOut();
+      }
+    }
+
+    $('gamble-risk').addEventListener('click', () => resolveGamble());
+    $('gamble-keep').addEventListener('click', () => dismissGamble());
+
+    /* ── Metal Tier (multiplier display only) ── */
+    function getTier(safePicks) {
+      if (safePicks >= 13) return 'platinum';
+      if (safePicks >= 8) return 'gold';
+      if (safePicks >= 4) return 'silver';
+      return 'copper';
+    }
+
+    /* ── Build Grid ── */
+    function buildGrid() {
+      grid.innerHTML = '';
+      for (let i = 0; i < GRID_SIZE; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile' + (state.phase === STATES.IDLE ? ' disabled' : '');
+        tile.dataset.index = i;
+        tile.innerHTML = '<div class="ore"></div>';
+        tile.addEventListener('click', () => onTileClick(i));
+        grid.appendChild(tile);
+      }
+    }
+
+    /* ── Update UI ── */
+    function updateUI() {
+      balanceEl.textContent = state.balance.toFixed(2);
+      const safePicks = state.revealed.size;
+      const tier = getTier(safePicks);
+
+      // Multiplier
+      multiplierValue.textContent = state.multiplier.toFixed(2) + '×';
+      multiplierDisplay.className = 'multiplier-display' + (safePicks > 0 ? ` tier-${tier}` : '');
+
+      // Potential win
+      if (state.phase === STATES.ACTIVE && safePicks > 0) {
+        potentialWin.innerHTML = `Cash out: <span>${(state.bet * state.multiplier).toFixed(2)}</span> credits`;
+      } else {
+        potentialWin.innerHTML = '';
+      }
+
+      // Action button
+      if (state.phase === STATES.IDLE) {
+        actionBtn.className = 'action-btn bet-btn';
+        actionBtn.textContent = 'Bet';
+        actionBtn.disabled = state.balance < state.bet;
+      } else if (state.phase === STATES.ACTIVE) {
+        actionBtn.className = 'action-btn cashout-btn';
+        actionBtn.textContent = safePicks > 0
+          ? `Cash Out — ${(state.bet * state.multiplier).toFixed(2)}`
+          : 'Pick a tile...';
+        actionBtn.disabled = safePicks === 0;
+      } else {
+        actionBtn.className = 'action-btn newgame-btn';
+        actionBtn.textContent = 'New Game';
+        actionBtn.disabled = false;
+      }
+
+      // Controls disabled state
+      const locked = state.phase !== STATES.IDLE;
+      minesInput.disabled = locked;
+      betInput.disabled = locked;
+      $('mines-minus').disabled = locked || state.mineCount <= 1;
+      $('mines-plus').disabled = locked || state.mineCount >= 24;
+      $('bet-half').disabled = locked;
+      $('bet-double').disabled = locked;
+
+      // Fair panel
+      nonceDisplay.textContent = Fair.getNonce();
+    }
+
+    /* ── Tile Click ── */
+    async function onTileClick(index) {
+      if (state.phase !== STATES.ACTIVE) return;
+      if (state.revealed.has(index)) return;
+
+      const tiles = grid.children;
+
+      if (state.mines.has(index)) {
+        // BOMB HIT
+        state.phase = STATES.OVER;
+        state.revealed.add(index);
+        const tile = tiles[index];
+        tile.classList.add('revealed', 'bomb');
+        tile.querySelector('.ore').style.backgroundImage = `url('${ORE_IMAGES.bomb}')`;
+        Sound.bomb();
+
+        // Reveal all other mines after delay
+        setTimeout(() => {
+          state.mines.forEach(mi => {
+            if (mi !== index) {
+              tiles[mi].classList.add('revealed', 'mine-reveal');
+              const oreEl = tiles[mi].querySelector('.ore');
+              oreEl.style.backgroundImage = `url('${ORE_IMAGES.bomb}')`;
+              oreEl.style.opacity = '1';
+              oreEl.style.transform = 'scale(1)';
+            }
+          });
+          resultText.className = 'result-text loss';
+          resultText.textContent = 'Mine Hit!';
+          resultOverlay.classList.add('show');
+          seedRevealed.textContent = Fair.getServerSeed();
+          updateUI();
+        }, 500);
+
+      } else {
+        // SAFE PICK
+        state.revealed.add(index);
+        state.multiplier = calcMultiplier(state.revealed.size, state.mineCount);
+
+        const tile = tiles[index];
+        const jackpotHit = state.revealed.size > 1 && isJackpot(index);
+
+        if (jackpotHit) {
+          tile.classList.add('revealed', 'jackpot');
+          tile.querySelector('.ore').style.backgroundImage = `url('${ORE_IMAGES.jackpot}')`;
+        } else {
+          tile.classList.add('revealed', 'safe');
+          tile.querySelector('.ore').style.backgroundImage = `url('${ORE_IMAGES.safe}')`;
+        }
+        tile.classList.remove('disabled');
+
+        Sound.reveal(state.revealed.size);
+
+        // Multiplier bump animation
+        multiplierValue.classList.remove('multiplier-bump');
+        void multiplierValue.offsetWidth;
+        multiplierValue.classList.add('multiplier-bump');
+
+        // Check if all safe tiles revealed
+        if (state.revealed.size === GRID_SIZE - state.mineCount) {
+          if (jackpotHit) {
+            setTimeout(() => {
+              showGambleModal();
+              // After gamble resolves, cashOut is called in dismissGamble
+            }, 600);
+          } else {
+            cashOut();
+          }
+          return;
+        }
+
+        if (jackpotHit) {
+          // Show gamble modal after a brief delay for reveal animation
+          setTimeout(() => showGambleModal(), 600);
+        }
+
+        updateUI();
+      }
+    }
+
+    /* ── Start Game ── */
+    async function startGame() {
+      if (state.phase !== STATES.IDLE) return;
+      if (state.balance < state.bet) return;
+
+      Sound.click();
+
+      state.balance -= state.bet;
+      state.revealed = new Set();
+      state.multiplier = 1;
+      state.clientSeed = clientSeedInput.value || state.clientSeed;
+
+      const result = await Fair.newRound(state.clientSeed, state.mineCount);
+      state.mines = result.mineSet;
+      state.serverHash = result.hash;
+      state.phase = STATES.ACTIVE;
+
+      seedHash.textContent = result.hash;
+      seedRevealed.textContent = 'Hidden until round ends';
+
+      // Reset grid
+      const tiles = grid.children;
+      for (let i = 0; i < GRID_SIZE; i++) {
+        tiles[i].className = 'tile';
+        tiles[i].querySelector('.ore').style = '';
+      }
+      resultOverlay.classList.remove('show');
+      updateUI();
+    }
+
+    /* ── Cash Out ── */
+    function cashOut() {
+      if (state.phase !== STATES.ACTIVE) return;
+      if (state.revealed.size === 0) return;
+
+      const winnings = state.bet * state.multiplier;
+      state.balance += winnings;
+      state.phase = STATES.WON;
+
+      Sound.cashout();
+
+      resultText.className = 'result-text win';
+      resultText.textContent = `+${winnings.toFixed(2)}`;
+      resultOverlay.classList.add('show');
+      seedRevealed.textContent = Fair.getServerSeed();
+
+      updateUI();
+    }
+
+    /* ── New Game ── */
+    function newGame() {
+      state.phase = STATES.IDLE;
+      state.multiplier = 1;
+      state.revealed = new Set();
+      resultOverlay.classList.remove('show');
+      buildGrid();
+      updateUI();
+    }
+
+    /* ── Event Listeners ── */
+    actionBtn.addEventListener('click', () => {
+      if (state.phase === STATES.IDLE) startGame();
+      else if (state.phase === STATES.ACTIVE) cashOut();
+      else newGame();
+    });
+
+    $('mines-minus').addEventListener('click', () => {
+      if (state.phase !== STATES.IDLE || state.mineCount <= 1) return;
+      state.mineCount--;
+      minesInput.value = state.mineCount;
+      Sound.click();
+      updateUI();
+    });
+
+    $('mines-plus').addEventListener('click', () => {
+      if (state.phase !== STATES.IDLE || state.mineCount >= 24) return;
+      state.mineCount++;
+      minesInput.value = state.mineCount;
+      Sound.click();
+      updateUI();
+    });
+
+    $('bet-half').addEventListener('click', () => {
+      if (state.phase !== STATES.IDLE) return;
+      state.bet = Math.max(0.10, state.bet / 2);
+      betInput.value = state.bet.toFixed(2);
+      Sound.click();
+      updateUI();
+    });
+
+    $('bet-double').addEventListener('click', () => {
+      if (state.phase !== STATES.IDLE) return;
+      state.bet = Math.min(state.balance, state.bet * 2);
+      betInput.value = state.bet.toFixed(2);
+      Sound.click();
+      updateUI();
+    });
+
+    betInput.addEventListener('change', () => {
+      let val = parseFloat(betInput.value);
+      if (isNaN(val) || val < 0.10) val = 0.10;
+      if (val > state.balance) val = state.balance;
+      state.bet = Math.round(val * 100) / 100;
+      betInput.value = state.bet.toFixed(2);
+      updateUI();
+    });
+
+    fairToggle.addEventListener('click', () => {
+      fairPanel.classList.toggle('open');
+      fairToggle.textContent = fairPanel.classList.contains('open')
+        ? '🔒 Provably Fair ▴'
+        : '🔒 Provably Fair ▾';
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+        e.preventDefault();
+        actionBtn.click();
+      }
+    });
+
+    /* ── Initialize ── */
+    clientSeedInput.value = state.clientSeed;
+    buildGrid();
+    updateUI();
+  </script>
+</body>
+
+</html>
