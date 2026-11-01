@@ -239,6 +239,10 @@
       width: 100%;
     }
 
+    .grid.disabled {
+      pointer-events: none;
+    }
+
     /* ── Tiles — Stone Texture Image ── */
     .tile {
       aspect-ratio: 1;
@@ -898,6 +902,136 @@
       }
     }
 
+    /* ── Win Celebrations ── */
+    #celebration-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    #celebration-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #confetti-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1001;
+      pointer-events: none;
+    }
+
+    .celeb-content {
+      position: relative;
+      z-index: 1002;
+      text-align: center;
+      transform: scale(0.8);
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    #celebration-overlay.show .celeb-content {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    .celeb-title {
+      font-size: 64px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      line-height: 1;
+      margin-bottom: 20px;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+      /* Default gold for BIG WIN */
+      color: var(--gold);
+      opacity: 0;
+    }
+
+    .celeb-title.stamp {
+      animation: stampIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes stampIn {
+      0% {
+        opacity: 0;
+        transform: scale(4) rotate(-10deg);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(0.9) rotate(2deg);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    .celeb-title.tier-big { color: var(--gold); text-shadow: 0 0 30px var(--gold-glow); }
+    .celeb-title.tier-mega { color: var(--amber); text-shadow: 0 0 40px var(--amber-glow); font-size: 72px; }
+    .celeb-title.tier-epic { color: #ff3366; text-shadow: 0 0 50px rgba(255,51,102,0.6); font-size: 84px; }
+
+    .celeb-amount-container {
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid var(--border-stone);
+      border-radius: 12px;
+      padding: 16px 40px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .celeb-amount {
+      font-size: 48px;
+      font-weight: 900;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .celeb-amount.tier-epic {
+      color: var(--amber);
+      text-shadow: 0 0 20px var(--amber-glow);
+    }
+
+    .celeb-sub {
+      font-size: 16px;
+      color: var(--text-dim);
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .shake-big { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+    .shake-mega { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
+    .shake-epic { animation: shakeHeavy 0.8s cubic-bezier(.36,.07,.19,.97) both; }
+
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+      40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+    
+    @keyframes shakeHeavy {
+      10%, 90% { transform: translate3d(-3px, 3px, 0); }
+      20%, 80% { transform: translate3d(6px, -3px, 0); }
+      30%, 50%, 70% { transform: translate3d(-8px, 4px, 0); }
+      40%, 60% { transform: translate3d(8px, -4px, 0); }
+    }
+
     /* ── Responsive ── */
     @media (max-width: 420px) {
       .logo {
@@ -967,7 +1101,7 @@
         <div class="gamble-buttons" id="gamble-buttons">
           <button class="gamble-btn risk" id="gamble-risk">
             <span class="gamble-btn-label">⚡ Risk It</span>
-            <span class="gamble-btn-sub">2× or 0.5×</span>
+            <span class="gamble-btn-sub">2× or Bust</span>
           </button>
           <button class="gamble-btn keep" id="gamble-keep">
             <span class="gamble-btn-label">🛡️ Keep It</span>
@@ -995,8 +1129,8 @@
         <div class="control-group">
           <div class="control-label">Bet Amount</div>
           <div class="control-input-row">
+            <input type="number" id="bet-input" value="10.00" step="1.00" min="0.01">
             <button class="ctrl-btn" id="bet-half">½</button>
-            <input type="number" id="bet-input" value="10.00" min="0.10" step="0.10">
             <button class="ctrl-btn" id="bet-double">2×</button>
           </div>
         </div>
@@ -1015,6 +1149,18 @@
       <input type="text" id="client-seed" value="">
       <label>Nonce</label>
       <div class="seed-value" id="nonce-display">0</div>
+    </div>
+  </div>
+
+  <!-- Win Celebration Overlay -->
+  <div id="celebration-overlay">
+    <canvas id="confetti-canvas"></canvas>
+    <div class="celeb-content">
+      <div class="celeb-title" id="celeb-title">BIG WIN!</div>
+      <div class="celeb-amount-container">
+        <div class="celeb-amount" id="celeb-amount">0.00</div>
+        <div class="celeb-sub">Credits Won</div>
+      </div>
     </div>
   </div>
 
@@ -1171,6 +1317,81 @@
             osc.connect(gain).connect(ctx.destination);
             osc.start(); osc.stop(ctx.currentTime + 0.4);
           });
+        },
+        bigWin() {
+          play(ctx => {
+            [0, 0.15, 0.3, 0.45].forEach((d, i) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'square';
+              osc.frequency.setValueAtTime(400 + i * 150, ctx.currentTime + d);
+              gain.gain.setValueAtTime(0.08, ctx.currentTime + d);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.3);
+              osc.connect(gain).connect(ctx.destination);
+              osc.start(ctx.currentTime + d); osc.stop(ctx.currentTime + d + 0.3);
+            });
+            
+            // Background rumble
+            const oscV = ctx.createOscillator();
+            const gainV = ctx.createGain();
+            oscV.type = 'sawtooth';
+            oscV.frequency.setValueAtTime(100, ctx.currentTime);
+            gainV.gain.setValueAtTime(0.05, ctx.currentTime);
+            gainV.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0);
+            oscV.connect(gainV).connect(ctx.destination);
+            oscV.start(); oscV.stop(ctx.currentTime + 1.0);
+          });
+        },
+        megaWin() {
+          play(ctx => {
+            [0, 0.1, 0.2, 0.3, 0.4, 0.5].forEach((d, i) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(300 + i * 200, ctx.currentTime + d);
+              gain.gain.setValueAtTime(0.1, ctx.currentTime + d);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.4);
+              osc.connect(gain).connect(ctx.destination);
+              osc.start(ctx.currentTime + d); osc.stop(ctx.currentTime + d + 0.4);
+            });
+            
+            const oscB = ctx.createOscillator();
+            const gainB = ctx.createGain();
+            oscB.type = 'square';
+            oscB.frequency.setValueAtTime(60, ctx.currentTime);
+            oscB.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.8);
+            gainB.gain.setValueAtTime(0.15, ctx.currentTime);
+            gainB.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+            oscB.connect(gainB).connect(ctx.destination);
+            oscB.start(); oscB.stop(ctx.currentTime + 1.5);
+          });
+        },
+        epicWin() {
+          play(ctx => {
+            // Massive Drop
+            const drop = ctx.createOscillator();
+            const dropGain = ctx.createGain();
+            drop.type = 'sawtooth';
+            drop.frequency.setValueAtTime(120, ctx.currentTime);
+            drop.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 1.5);
+            dropGain.gain.setValueAtTime(0.2, ctx.currentTime);
+            dropGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.0);
+            drop.connect(dropGain).connect(ctx.destination);
+            drop.start(); drop.stop(ctx.currentTime + 2.0);
+
+            // Angelic Chords
+            [800, 1000, 1200, 1600].forEach((freq) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, ctx.currentTime + 0.5);
+              gain.gain.setValueAtTime(0, ctx.currentTime);
+              gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 1.0);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 3.0);
+              osc.connect(gain).connect(ctx.destination);
+              osc.start(ctx.currentTime + 0.5); osc.stop(ctx.currentTime + 3.0);
+            });
+          });
         }
       };
     })();
@@ -1225,9 +1446,10 @@
     })();
 
     /* ── Game State ── */
-    const STATES = { IDLE: 'idle', ACTIVE: 'active', OVER: 'over', WON: 'won' };
+    const STATES = { IDLE: 'idle', ACTIVE: 'active', GAMBLE: 'gamble', OVER: 'over', WON: 'won' };
     const GRID_SIZE = 25;
     const HOUSE_EDGE = 0.01;
+    const MAX_MULTIPLIER = 20000;
 
     let state = {
       phase: STATES.IDLE,
@@ -1237,6 +1459,7 @@
       mines: new Set(),
       revealed: new Set(),
       multiplier: 1,
+      jackpotMultiplier: 1,
       clientSeed: 'goldmine_' + Math.random().toString(36).slice(2, 10)
     };
 
@@ -1259,6 +1482,13 @@
     const fairToggle = $('fair-toggle');
     const fairPanel = $('fair-panel');
 
+    /* ── Celebration DOM References ── */
+    const celebOverlay = $('celebration-overlay');
+    const celebTitle = $('celeb-title');
+    const celebAmount = $('celeb-amount');
+    const confettiCanvas = $('confetti-canvas');
+    const ctxConfetti = confettiCanvas.getContext('2d');
+
     /* ── Multiplier Calculation ── */
     function calcMultiplier(safePicks, mineCount) {
       if (safePicks === 0) return 1;
@@ -1268,6 +1498,233 @@
       }
       return (1 - HOUSE_EDGE) / prob;
     }
+
+    /* ── Particle System ── */
+    const ParticleSystem = (() => {
+      let particles = [];
+      let animationFrame;
+      let width, height;
+
+      function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        confettiCanvas.width = width;
+        confettiCanvas.height = height;
+      }
+      
+      window.addEventListener('resize', resize);
+      resize();
+
+      function rnd(min, max) { return Math.random() * (max - min) + min; }
+
+      class Particle {
+        constructor(tier) {
+          this.tier = tier;
+          // type: 0 = coin, 1 = diamond, 2 = ember (epic only)
+          if (tier === 'epic') {
+            this.type = Math.random() < 0.6 ? 0 : Math.random() < 0.8 ? 1 : 2;
+          } else if (tier === 'mega') {
+            this.type = Math.random() < 0.7 ? 0 : 1;
+          } else {
+            this.type = 0; // only coins for big win
+          }
+
+          this.x = width / 2 + rnd(-50, 50);
+          this.y = height + 20; // start below screen
+          
+          // Explosion physics
+          const angle = rnd(Math.PI * 1.2, Math.PI * 1.8);
+          let speed = rnd(10, 25);
+          if (tier === 'epic') speed *= 1.5;
+          
+          this.vx = Math.cos(angle) * speed;
+          this.vy = Math.sin(angle) * speed;
+          
+          this.gravity = rnd(0.3, 0.6);
+          this.size = rnd(10, 18);
+          if (this.type === 2) this.size = rnd(3, 8); // embers are small
+          
+          this.rotation = rnd(0, Math.PI * 2);
+          this.rotSpeed = rnd(-0.2, 0.2);
+          
+          this.color = this.type === 0 ? `hsl(${rnd(40, 50)}, 100%, 50%)` : 
+                       this.type === 1 ? `hsl(200, 100%, 70%)` : 
+                       `hsl(${rnd(10, 30)}, 100%, 60%)`;
+        }
+
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.vy += this.gravity;
+          this.rotation += this.rotSpeed;
+          return this.y > height + 50; // true if offscreen
+        }
+
+        draw(ctx) {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation);
+
+          if (this.type === 0) {
+            // Coin
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.size, this.size * Math.abs(Math.sin(this.rotation*2)), 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#fff';
+            ctx.stroke();
+          } else if (this.type === 1) {
+            // Diamond
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.moveTo(0, -this.size);
+            ctx.lineTo(this.size, 0);
+            ctx.lineTo(0, this.size);
+            ctx.lineTo(-this.size, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowColor = '#fff';
+            ctx.shadowBlur = 10;
+          } else {
+            // Ember
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowColor = this.color;
+            ctx.shadowBlur = 15;
+          }
+          
+          ctx.restore();
+        }
+      }
+
+      function loop() {
+        ctxConfetti.clearRect(0, 0, width, height);
+        particles = particles.filter(p => {
+          p.draw(ctxConfetti);
+          return !p.update();
+        });
+        
+        if (particles.length > 0) {
+          animationFrame = requestAnimationFrame(loop);
+        }
+      }
+
+      return {
+        burst(tier, count) {
+          for (let i = 0; i < count; i++) {
+            particles.push(new Particle(tier));
+          }
+          if (!animationFrame || particles.length === count) {
+            loop();
+          }
+        },
+        stop() {
+          particles = [];
+          if (animationFrame) cancelAnimationFrame(animationFrame);
+          ctxConfetti.clearRect(0, 0, width, height);
+        }
+      };
+    })();
+
+    /* ── Celebration Logic ── */
+    let celebrationTimeout;
+    
+    function triggerCelebration(multiplier, payoutAmount) {
+      // Determine Tier
+      let tier = '';
+      if (multiplier >= 100) tier = 'epic';
+      else if (multiplier >= 25) tier = 'mega';
+      else if (multiplier >= 5) tier = 'big';
+      else return false; // Too small for celebration
+
+      clearTimeout(celebrationTimeout);
+      ParticleSystem.stop();
+
+      // Setup UI
+      celebOverlay.className = 'show';
+      celebTitle.className = `celeb-title stamp tier-${tier}`;
+      celebAmount.className = `celeb-amount tier-${tier}`;
+      celebAmount.textContent = '0.00';
+      
+      let titleText = 'BIG WIN!';
+      let shakeClass = 'shake-big';
+      let burstCount = 60;
+      let duration = 1500;
+      let burstInterval;
+
+      if (tier === 'mega') {
+        titleText = 'MEGA WIN!';
+        shakeClass = 'shake-mega';
+        burstCount = 150;
+        duration = 2500;
+      } else if (tier === 'epic') {
+        titleText = 'EPIC WIN!';
+        shakeClass = 'shake-epic';
+        burstCount = 300;
+        duration = 4000;
+      }
+
+      celebTitle.textContent = titleText;
+      
+      // Screen Shake
+      document.body.classList.remove('shake-big', 'shake-mega', 'shake-epic');
+      void document.body.offsetWidth; // re-trigger
+      document.body.classList.add(shakeClass);
+
+      // Audio (we will map Sound methods)
+      if (tier === 'epic') Sound.epicWin();
+      else if (tier === 'mega') Sound.megaWin();
+      else Sound.bigWin();
+
+      // Continuous particle bursting for duration
+      let elapsed = 0;
+      burstInterval = setInterval(() => {
+        ParticleSystem.burst(tier, tier === 'epic' ? 30 : tier === 'mega' ? 15 : 5);
+        elapsed += 100;
+        if (elapsed >= duration) clearInterval(burstInterval);
+      }, 100);
+
+      // Initial Burst
+      ParticleSystem.burst(tier, burstCount);
+
+      // Animate Counter
+      const startTime = performance.now();
+      function updateCounter(now) {
+        const timePassed = now - startTime;
+        let progress = timePassed / duration;
+        if (progress > 1) progress = 1;
+
+        // Ease out expo
+        const easeAmount = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+        const currentAmount = payoutAmount * easeAmount;
+        
+        celebAmount.textContent = currentAmount.toFixed(2);
+
+        if (progress < 1) {
+          requestAnimationFrame(updateCounter);
+        }
+      }
+      requestAnimationFrame(updateCounter);
+
+      // Auto dismiss after duration + 3s tail
+      celebrationTimeout = setTimeout(() => dismissCelebration(), duration + 3000);
+      return true;
+    }
+
+    function dismissCelebration() {
+      celebOverlay.classList.remove('show');
+      document.body.classList.remove('shake-big', 'shake-mega', 'shake-epic');
+      setTimeout(() => ParticleSystem.stop(), 300);
+    }
+    
+    // Allow click to dismiss
+    celebOverlay.addEventListener('click', () => {
+        clearTimeout(celebrationTimeout);
+        dismissCelebration();
+    });
 
     /* ── Ore Image Assets ── */
     const ORE_IMAGES = {
@@ -1310,7 +1767,13 @@
       const won = val >= 0.5;
 
       const oldMultiplier = state.multiplier;
-      state.multiplier = won ? oldMultiplier * 2 : oldMultiplier * 0.5;
+      state.jackpotMultiplier *= (won ? 2 : 0);
+      
+      let newMultiplier = won ? oldMultiplier * 2 : 0;
+      if (newMultiplier >= MAX_MULTIPLIER) {
+          newMultiplier = MAX_MULTIPLIER;
+      }
+      state.multiplier = newMultiplier;
 
       gambleButtons.style.display = 'none';
 
@@ -1322,8 +1785,8 @@
       } else {
         Sound.gambleLose();
         gambleResultText.className = 'gamble-result-text lose';
-        gambleResultText.textContent = 'HALVED';
-        gambleResultDetail.textContent = `${oldMultiplier.toFixed(2)}× → ${state.multiplier.toFixed(2)}×`;
+        gambleResultText.textContent = 'BUSTED';
+        gambleResultDetail.textContent = `${oldMultiplier.toFixed(2)}× → 0.00×`;
       }
 
       gambleResult.classList.add('show');
@@ -1336,11 +1799,33 @@
 
     function dismissGamble() {
       gambleOverlay.classList.remove('show');
-      updateUI();
 
-      // Check if all safe tiles revealed
-      if (state.revealed.size === GRID_SIZE - state.mineCount) {
+      if (state.multiplier === 0) {
+        state.phase = STATES.OVER;
+        resultText.className = 'result-text loss';
+        resultText.textContent = 'Busted!';
+        resultOverlay.classList.add('show');
+        seedRevealed.textContent = Fair.getServerSeed();
+        
+        const tiles = grid.children;
+        state.mines.forEach(mi => {
+          tiles[mi].classList.add('revealed', 'mine-reveal');
+          const oreEl = tiles[mi].querySelector('.ore');
+          oreEl.style.backgroundImage = `url('${ORE_IMAGES.bomb}')`;
+          oreEl.style.opacity = '1';
+          oreEl.style.transform = 'scale(1)';
+        });
+        updateUI();
+        return;
+      }
+
+      // Check if all safe tiles revealed or Max Multiplier hit
+      if (state.multiplier >= MAX_MULTIPLIER || state.revealed.size === GRID_SIZE - state.mineCount) {
+        state.phase = STATES.ACTIVE;
         cashOut();
+      } else {
+        state.phase = STATES.ACTIVE;
+        updateUI();
       }
     }
 
@@ -1390,12 +1875,12 @@
         actionBtn.className = 'action-btn bet-btn';
         actionBtn.textContent = 'Bet';
         actionBtn.disabled = state.balance < state.bet;
-      } else if (state.phase === STATES.ACTIVE) {
+      } else if (state.phase === STATES.ACTIVE || state.phase === STATES.GAMBLE) {
         actionBtn.className = 'action-btn cashout-btn';
         actionBtn.textContent = safePicks > 0
           ? `Cash Out — ${(state.bet * state.multiplier).toFixed(2)}`
           : 'Pick a tile...';
-        actionBtn.disabled = safePicks === 0;
+        actionBtn.disabled = safePicks === 0 || state.phase === STATES.GAMBLE;
       } else {
         actionBtn.className = 'action-btn newgame-btn';
         actionBtn.textContent = 'New Game';
@@ -1413,6 +1898,9 @@
 
       // Fair panel
       nonceDisplay.textContent = Fair.getNonce();
+      
+      // Lock grid pointer events if not active
+      grid.classList.toggle('disabled', state.phase !== STATES.ACTIVE);
     }
 
     /* ── Tile Click ── */
@@ -1452,10 +1940,16 @@
       } else {
         // SAFE PICK
         state.revealed.add(index);
-        state.multiplier = calcMultiplier(state.revealed.size, state.mineCount);
+        state.multiplier = calcMultiplier(state.revealed.size, state.mineCount) * state.jackpotMultiplier;
+
+        let hitMax = false;
+        if (state.multiplier >= MAX_MULTIPLIER) {
+          state.multiplier = MAX_MULTIPLIER;
+          hitMax = true;
+        }
 
         const tile = tiles[index];
-        const jackpotHit = state.revealed.size > 1 && isJackpot(index);
+        const jackpotHit = !hitMax && state.revealed.size > 1 && isJackpot(index);
 
         if (jackpotHit) {
           tile.classList.add('revealed', 'jackpot');
@@ -1473,9 +1967,11 @@
         void multiplierValue.offsetWidth;
         multiplierValue.classList.add('multiplier-bump');
 
-        // Check if all safe tiles revealed
-        if (state.revealed.size === GRID_SIZE - state.mineCount) {
+        // Check if all safe tiles revealed or Max Multiplier hit
+        if (hitMax || state.revealed.size === GRID_SIZE - state.mineCount) {
           if (jackpotHit) {
+            state.phase = STATES.GAMBLE;
+            updateUI();
             setTimeout(() => {
               showGambleModal();
               // After gamble resolves, cashOut is called in dismissGamble
@@ -1487,6 +1983,7 @@
         }
 
         if (jackpotHit) {
+          state.phase = STATES.GAMBLE;
           // Show gamble modal after a brief delay for reveal animation
           setTimeout(() => showGambleModal(), 600);
         }
@@ -1505,6 +2002,7 @@
       state.balance -= state.bet;
       state.revealed = new Set();
       state.multiplier = 1;
+      state.jackpotMultiplier = 1;
       state.clientSeed = clientSeedInput.value || state.clientSeed;
 
       const result = await Fair.newRound(state.clientSeed, state.mineCount);
@@ -1534,7 +2032,11 @@
       state.balance += winnings;
       state.phase = STATES.WON;
 
-      Sound.cashout();
+      const celebing = triggerCelebration(state.multiplier, winnings);
+
+      if (!celebing) {
+        Sound.cashout();
+      }
 
       resultText.className = 'result-text win';
       resultText.textContent = `+${winnings.toFixed(2)}`;
@@ -1548,6 +2050,7 @@
     function newGame() {
       state.phase = STATES.IDLE;
       state.multiplier = 1;
+      state.jackpotMultiplier = 1;
       state.revealed = new Set();
       resultOverlay.classList.remove('show');
       buildGrid();
@@ -1558,7 +2061,7 @@
     actionBtn.addEventListener('click', () => {
       if (state.phase === STATES.IDLE) startGame();
       else if (state.phase === STATES.ACTIVE) cashOut();
-      else newGame();
+      else if (state.phase === STATES.OVER || state.phase === STATES.WON) newGame();
     });
 
     $('mines-minus').addEventListener('click', () => {
