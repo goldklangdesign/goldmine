@@ -14,6 +14,8 @@ Living source of truth for Goldmine. Project work and anything waiting on David 
   runs `~/bin/project-claude-start-continue.sh`, so restarts use `--continue`.
 
 ## Waiting on David
+**Parked (David, 2026-11-01): very low priority. Nothing below is owed; don't raise it with him until he
+un-parks Goldmine. Leave `wip/big-win-celebration` as is.**
 - Safeguard hooks (SessionStart / Stop) aren't installed. A peer can't approve config changes, and the agent's
   folder is `~/Workspace/Other`, not this repo, so a `goldmine/.claude/settings.json` wouldn't load. Decide where
   they go: point the LaunchAgent at `~/Workspace/Other/goldmine`, or add `~/Workspace/Other/.claude/settings.json`.
